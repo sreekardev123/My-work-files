@@ -10,6 +10,7 @@ const Bisform = () => {
     password: '',
     comment: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -19,14 +20,66 @@ const Bisform = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
-    // Show alert
-    alert("Form submitted successfully!");
+    try {
+      // Get file type
+      let fileType = null;
+      if (formData.file) {
+        fileType = formData.file.type || 'unknown';
+      }
 
-    // Navigate to /paymentform and pass formData
-    navigate("/paymentform", { state: { formData } });
+      // Debug logging
+      console.log('📁 File Debug Info:');
+      console.log('  - File object:', formData.file);
+      console.log('  - File name:', formData.file?.name);
+      console.log('  - File type:', formData.file?.type);
+      console.log('  - File size:', formData.file?.size);
+
+      // Prepare data for backend
+      const submitData = {
+        username: formData.username,
+        password: formData.password,
+        fileName: formData.file ? formData.file.name : null,
+        fileType: fileType,
+        filePath: formData.file ? `/uploads/${formData.file.name}` : null,
+        comment: formData.comment
+      };
+
+      console.log('📤 Data being sent to backend:', submitData);
+
+      // Send data to backend
+      const response = await fetch('http://localhost:5000/api/bis-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(submitData)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert("Form submitted successfully!");
+        
+        // Navigate to payment form with both form data and backend response
+        navigate("/paymentform", { 
+          state: { 
+            formData,
+            bisFormData: result.data // Backend response data
+          } 
+        });
+      } else {
+        alert("Failed to submit form: " + result.message);
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      alert("Error submitting form. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -67,7 +120,9 @@ const Bisform = () => {
           onChange={handleChange}
         ></textarea>
 
-        <button type="submit">SUBMIT</button>
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Submitting...' : 'SUBMIT'}
+        </button>
       </form>
     </div>
   );

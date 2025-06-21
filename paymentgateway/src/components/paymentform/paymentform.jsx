@@ -6,6 +6,7 @@ const Paymentform = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const formData = location.state?.formData;
+  const bisFormData = location.state?.bisFormData;
 
   const [form, setForm] = useState({
     formId: "BIS-001",
@@ -71,6 +72,45 @@ const Paymentform = () => {
     }
   };
 
+  const saveReceiptToBackend = async () => {
+    try {
+      // Get IP address
+      const ipResponse = await fetch('https://api.ipify.org?format=json');
+      const ipData = await ipResponse.json();
+      const ipAddress = ipData.ip;
+
+      const receiptData = {
+        bisFormId: bisFormData?.bisFormId || 1,
+        username: formData?.username || "N/A",
+        formId: form.formId,
+        totalFee: parseFloat(form.totalFee),
+        paidAmount: parseFloat(form.enterAmount),
+        balanceAmount: parseFloat(form.balanceAmount),
+        paymentMode: form.modeOfPayment,
+        gstType: form.gstType,
+        ipAddress: ipAddress
+      };
+
+      const response = await fetch('http://localhost:5000/api/receipt', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(receiptData)
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        console.log('Receipt saved to backend:', result.data);
+      } else {
+        console.error('Failed to save receipt:', result.message);
+      }
+    } catch (error) {
+      console.error('Error saving receipt:', error);
+    }
+  };
+
   const handlePayment = (e) => {
     e.preventDefault();
     if (!isRazorpayLoaded) {
@@ -88,10 +128,19 @@ const Paymentform = () => {
       currency: "INR",
       name: "24HR7 Commerce Pvt Ltd.",
       description: "BIS Payment",
-      handler: function () {
+      handler: async function () {
         alert("Payment Successful!");
+        
+        // Save receipt to backend
+        await saveReceiptToBackend();
+        
         navigate("/receiptform", {
-          state: { formData, paymentDetails: form }
+          state: { 
+            formData: formData,
+            payData: form,
+            formId: form.formId,
+            username: formData?.username || "N/A"
+          }
         });
       }
     });
