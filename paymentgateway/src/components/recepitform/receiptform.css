@@ -1,0 +1,40 @@
+.preview-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 50px;
+  background-color: #f5faff;
+  min-height: 100vh;
+  padding: 30px;
+}
+
+.receipt-wrapper {
+  padding: 20px;
+  border: 1px solid #ccc;
+  font-family: Arial, sans-serif;
+  background-color: #ffffff;
+  width: 600px;
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.15);
+}
+
+.receipt-wrapper h1 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #007bff;
+}
+
+.receipt-wrapper h2 {
+  margin-top: 25px;
+  color: #444;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 5px;
+}
+
+.receipt-wrapper p {
+  margin: 10px 0;
+  font-size: 15px;
+}
+
+.receipt-wrapper strong {
+  color: #000;
+}
